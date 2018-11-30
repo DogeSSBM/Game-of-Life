@@ -6,6 +6,8 @@ Use compile.sh to compile with GCC. SDL2 needs to be installed before compilatio
 
 Controls:
 
+Space - Pause/unpause
+
 Arrow Up - Speed up
 
 Arrow Down - Slow down
