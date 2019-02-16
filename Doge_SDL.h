@@ -1,25 +1,38 @@
 #pragma once
-#include<stdbool.h>
-#include<SDL2/SDL.h>
-#include<stdint.h>
-#include<stdio.h>
+#include <time.h>
+#include <stdbool.h>
+#include <SDL2/SDL.h>
+#include <stdint.h>
+#include <stdio.h>
 
-#define XMAX 480
-#define YMAX 480
-#define XMID (XMAX / 2)
-#define YMID (YMAX / 2)
+// window size macros
+#define WINDX 1550
+#define WINDY 800
+#define WINDXMID (WINDX / 2)
+#define WINDYMID (WINDY / 2)
 
-//extern bool** grid;
-extern bool run;
-extern bool pause;
-extern uint delayTime;
-extern void randomize();
-
+typedef unsigned int uint;
 typedef uint8_t u8;
+
+uint delayTime = 100;
+bool pause = false;
+
+void initGrid();
 
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Event event;
+
+void quit()
+{
+	// Destroy renderer
+	SDL_DestroyRenderer(renderer);
+	// Destroy window
+	SDL_DestroyWindow(window);
+	// Quit SDL subsystems
+	SDL_Quit();
+	exit(0);
+}
 
 void handleKey()
 {
@@ -34,7 +47,7 @@ void handleKey()
 			else{
 				delayTime -= 100;
 			}
-		break;
+			break;
 		case SDLK_DOWN:
 			if(delayTime >= 1000){
 				delayTime = 1000;
@@ -45,18 +58,19 @@ void handleKey()
 			else{
 				delayTime += 10;
 			}
-		break;
+			break;
 		case SDLK_q:
-			run = false;
-		break;
+			quit();
+			break;
 		case SDLK_r:
-			randomize();
-		break;
+			initGrid();
+			break;
 		case SDLK_SPACE:
 			pause = !pause;
-		break;
+			break;
 		default:
-		break;
+			printf("Unknown Key event!\n");
+			break;
 	}
 }
 
@@ -65,8 +79,8 @@ void events()
 	while(SDL_PollEvent(&event)){
 		switch(event.type){
 			case SDL_QUIT:
-				run = false;
 				printf("Quitting now!\n");
+				quit();
 				break;
 			case SDL_MOUSEMOTION:
 				printf("Mouse position (%d, %d)\n", event.motion.x, event.motion.y);
@@ -134,6 +148,11 @@ void fillRect(uint x, uint y, uint xlen, uint ylen)
 	SDL_RenderFillRect(renderer, &rect);
 }
 
+void fillScreen()
+{
+	SDL_RenderClear(renderer);
+}
+
 void drawFrame()
 {
 	SDL_RenderPresent(renderer);
@@ -141,6 +160,7 @@ void drawFrame()
 
 void init()
 {
+	srand(time(NULL));
 	if(SDL_Init(SDL_INIT_VIDEO)<0){
 		printf("SDL borked! Error: %s\n", SDL_GetError());
 		// Destroy renderer
@@ -152,7 +172,10 @@ void init()
 	}
 	else{
 		//Create window
-		SDL_CreateWindowAndRenderer(XMAX, YMAX, 0,
+		SDL_CreateWindowAndRenderer(WINDX, WINDY, 0,
 			&window, &renderer);
+		setColor(0, 0, 0);
+		drawRect(0, 0, WINDX, WINDY);
+		drawFrame();
 	}
 }

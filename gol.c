@@ -4,15 +4,13 @@
 #include<stdio.h>
 #include"Doge_SDL.h"
 
-#define CELLLEN 8
-#define GRIDXMAX (XMAX / CELLLEN)
-#define GRIDYMAX (YMAX / CELLLEN)
+#define NEIGHBORHOOD 1 // number of cells away from current cell to check
+#define CELLLEN 5
+#define GRIDX WINDX / CELLLEN
+#define GRIDY WINDY / CELLLEN
 
-bool grid[GRIDXMAX][GRIDYMAX];
-bool nextGen[GRIDXMAX][GRIDYMAX];
-uint delayTime = 100;
-bool pause = false;
-bool run = true;
+bool grid[GRIDX][GRIDY];
+bool nextGen[GRIDX][GRIDY];
 
 typedef struct{
 	uint x, y;
@@ -22,113 +20,95 @@ typedef struct{
 Mouse mouse = {};
 Mouse lastMouse = {};
 
+void initGrid()
+{
+	for(uint y = 0; y < GRIDY; y++){
+		for(uint x = 0; x < GRIDX; x++){
+			grid[x][y] = rand() & 1;
+		}
+	}
+}
+
 void drawCell(uint x, uint y)
 {
-	setColor(0, 0, 0);
-	fillRect(x*CELLLEN, y*CELLLEN,
-		x*CELLLEN+CELLLEN, y*CELLLEN+CELLLEN);
+	uint xpos = x*CELLLEN;
+	uint ypos = y*CELLLEN;
+
+	setColor(10, 10, 10);
+	fillRect(xpos, ypos, CELLLEN, CELLLEN);
+
 	if(grid[x][y]){
-		setColor(255, 0, 0);
-		fillRect(x*CELLLEN+1, y*CELLLEN+1,
-			x*CELLLEN+CELLLEN-1, y*CELLLEN+CELLLEN-1);
+		setColor(255, 25, 55);
 	}
+	else{
+		setColor(0, 0, 0);
+	}
+
+	fillRect(xpos+1, ypos+1, CELLLEN-2, CELLLEN-2);
 }
 
 void drawGrid()
 {
-	for(uint y = 0; y < GRIDYMAX; y++) {
-		for(uint x = 0; x < GRIDXMAX; x++) {
+	for(uint y = 0; y < GRIDY; y++){
+		for(uint x = 0; x < GRIDX; x++){
 			drawCell(x, y);
-		}
-	}
-	drawFrame();
-}
-
-void fillGrid(bool state)
-{
-	for(uint y = 0; y < GRIDYMAX; y++) {
-		for(uint x = 0; x < GRIDXMAX; x++) {
-			grid[x][y] = state;
 		}
 	}
 }
 
 uint wrapX(int x)
 {
-	if(x == -1){
-		return GRIDXMAX-1;
+	if(x >= GRIDX){
+		return (uint)x % GRIDX;
 	}
-	else if(x == GRIDXMAX){
-		return 0;
+	else if(x < 0){
+		return (uint)x + GRIDX;
 	}
-	return x;
+	return (uint)x;
 }
 
 uint wrapY(int y)
 {
-	if(y == -1){
-		return GRIDYMAX-1;
+	if(y >= GRIDY){
+		return (uint)y % GRIDY;
 	}
-	else if(y == GRIDYMAX){
-		return 0;
+	else if(y < 0){
+		return (uint)y + GRIDY;
 	}
-	return y;
+	return (uint)y;
 }
 
 uint getNeighbors(uint x, uint y)
 {
-	uint liveNeighbors = 0;
-	// C = check,
-
-	/*	CCC
-			---
-			---		*/
-	liveNeighbors += grid[wrapX(x-1)]	[wrapY(y-1)];
-	liveNeighbors += grid[x]					[wrapY(y-1)];
-	liveNeighbors += grid[wrapX(x+1)]	[wrapY(y-1)];
-
-	/*	---
-			C-C
-			---		*/
-	liveNeighbors += grid[wrapX(x-1)]	[y];
-	liveNeighbors += grid[wrapX(x+1)]	[y];
-
-	/*	---
-			---
-			CCC		*/
-	liveNeighbors += grid[wrapX(x-1)]	[wrapY(y+1)];
-	liveNeighbors += grid[x]					[wrapY(y+1)];
-	liveNeighbors += grid[wrapX(x+1)]	[wrapY(y+1)];
-
-	return liveNeighbors;
+	uint neighbors=0;
+	for(int xoffset = 0-NEIGHBORHOOD; xoffset <= NEIGHBORHOOD; xoffset++){
+	for(int yoffset = 0-NEIGHBORHOOD; yoffset <= NEIGHBORHOOD; yoffset++){
+		neighbors+=grid[wrapX(x+xoffset)][wrapY(y+yoffset)];
+	}
+	}
+	return neighbors-grid[x][y];
 }
 
-void nextStep()
+void iterate()
 {
-	for(int y = 0; y < GRIDYMAX; y++) {
-		for(int x = 0; x < GRIDXMAX; x++) {
+	for(uint y = 0; y < GRIDY; y++){
+		for(uint x = 0; x < GRIDX; x++){
 			uint neighbors = getNeighbors(x, y);
-			if(grid[x][y]){
-				nextGen[x][y] = neighbors == 2 || neighbors == 3;
+			if(neighbors > 3 || neighbors < 2){
+				nextGen[x][y] = 0;
 			}
 			else{
-				nextGen[x][y] = neighbors == 3;
+				nextGen[x][y] = grid[x][y] || neighbors==3;
 			}
 		}
 	}
-	for(uint y = 0; y < GRIDYMAX; y++) {
-		for(uint x = 0; x < GRIDXMAX; x++) {
-			grid[x][y] = nextGen[x][y];
-		}
-	}
-	drawGrid();
 }
 
-void randomize()
+void advanceGen()
 {
-	for(uint y = 0; y < GRIDYMAX; y++) {
-		for(uint x = 0; x < GRIDXMAX; x++) {
-			grid[x][y] = rand() & 1;
+	for(uint y = 0; y < GRIDY; y++){
+		for(uint x = 0; x < GRIDX; x++){
+			grid[x][y]=nextGen[x][y];
 		}
 	}
 }
@@ -136,26 +116,15 @@ void randomize()
 int main()
 {
 	init();
-	setColor(0, 0, 0);
-	fillRect(0, 0, XMAX, YMAX);
-	fillGrid(true);
-	drawGrid();
-	randomize();
-	while(run){
-		while(pause){
-			events();
-		}
+	initGrid();
+	while(1){
+		drawGrid();
+		drawFrame();
+		iterate();
+		advanceGen();
 		events();
-		nextStep();
 		delay(delayTime);
 	}
-
-	// Destroy renderer
-	SDL_DestroyRenderer(renderer);
-	// Destroy window
-	SDL_DestroyWindow(window);
-	// Quit SDL subsystems
-	SDL_Quit();
 
 	return 0;
 }
