@@ -120,9 +120,11 @@ int main()
 	while(1){
 		drawGrid();
 		drawFrame();
+		do{
+			events();
+		}while(pause);
 		iterate();
 		advanceGen();
-		events();
 		delay(delayTime);
 	}
 
