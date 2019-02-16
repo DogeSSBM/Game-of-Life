@@ -38,25 +38,31 @@ void handleKey()
 {
 	switch (event.key.keysym.sym){
 		case SDLK_UP:
-			if(delayTime <= 10){
-				delayTime = 10;
+			if(delayTime > 1000){
+				delayTime = 1000;
 			}
-			else if(delayTime <= 100){
+			else if(delayTime > 100){
+				delayTime -= 100;
+			}
+			else if(delayTime > 10){
 				delayTime -= 10;
 			}
-			else{
-				delayTime -= 100;
+			else if(delayTime > 0){
+				delayTime--;
 			}
 			break;
 		case SDLK_DOWN:
-			if(delayTime >= 1000){
+			if(delayTime > 1000){
 				delayTime = 1000;
 			}
 			else if(delayTime > 100){
 				delayTime += 100;
 			}
-			else{
+			else if(delayTime > 10){
 				delayTime += 10;
+			}
+			else if(delayTime >= 0){
+				delayTime++;
 			}
 			break;
 		case SDLK_q:
