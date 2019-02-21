@@ -1,13 +1,15 @@
 #pragma once
-#include <time.h>
-#include <stdbool.h>
-#include <SDL2/SDL.h>
+#include <stdlib.h>
 #include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+#include <time.h>
 #include <stdio.h>
+#include <SDL2/SDL.h>
 
 // window size macros
-#define WINDX 1550
-#define WINDY 800
+#define WINDX 400
+#define WINDY 400
 #define WINDXMID (WINDX / 2)
 #define WINDYMID (WINDY / 2)
 
@@ -17,11 +19,14 @@ typedef uint8_t u8;
 uint delayTime = 100;
 bool pause = false;
 
-void initGrid();
-
 SDL_Window* window;
 SDL_Renderer* renderer;
 SDL_Event event;
+
+void randomizeGrid();
+void windowSizeUp();
+void windowSizedown();
+void handleKey();
 
 void quit()
 {
@@ -34,51 +39,6 @@ void quit()
 	exit(0);
 }
 
-void handleKey()
-{
-	switch (event.key.keysym.sym){
-		case SDLK_UP:
-			if(delayTime > 1000){
-				delayTime = 1000;
-			}
-			else if(delayTime > 100){
-				delayTime -= 100;
-			}
-			else if(delayTime > 10){
-				delayTime -= 10;
-			}
-			else if(delayTime > 0){
-				delayTime--;
-			}
-			break;
-		case SDLK_DOWN:
-			if(delayTime > 1000){
-				delayTime = 1000;
-			}
-			else if(delayTime > 100){
-				delayTime += 100;
-			}
-			else if(delayTime > 10){
-				delayTime += 10;
-			}
-			else if(delayTime >= 0){
-				delayTime++;
-			}
-			break;
-		case SDLK_q:
-			quit();
-			break;
-		case SDLK_r:
-			initGrid();
-			break;
-		case SDLK_SPACE:
-			pause = !pause;
-			break;
-		default:
-			printf("Unknown Key event!\n");
-			break;
-	}
-}
 
 void events()
 {
@@ -104,9 +64,10 @@ void events()
 				printf("Key pressed\n");
 				handleKey();
 				break;
-			case SDL_KEYUP:
+			/*case SDL_KEYUP:
 				printf("Key released\n");
-				break;
+				handleKey();
+				break;*/
 			default:
 				printf("Unknown event!\n");
 				break;
