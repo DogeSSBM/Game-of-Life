@@ -8,9 +8,13 @@ Controls:
 
 Space - Pause/unpause
 
-Arrow Up - Speed up
+Arrow Up - Cell size up
 
-Arrow Down - Slow down
+Arrow Down - Cell size down
+
+Arrow Right - Speed up
+
+Arrow Left - Slow down
 
 R - Re-randomizes the grid
 
