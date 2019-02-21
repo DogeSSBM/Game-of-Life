@@ -28,7 +28,7 @@ void randomizeGrid()
 bool changeCelllen(int change)
 {
 	uint newLen = celllen + change;
-	if(newLen < WINDXMID && newLen < WINDYMID && newLen >= 2){
+	if(newLen < WINDXMID && newLen < WINDYMID && newLen > 2){
 		celllen = newLen;
 
 		return true;
